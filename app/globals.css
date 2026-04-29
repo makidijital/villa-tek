@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "react-date-range/dist/styles.css";
+@import "react-date-range/dist/theme/default.css";
 
 :root {
   --background: #ffffff;
@@ -24,3 +26,40 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+html {
+  scroll-behavior: smooth;
+}
+/* 🔥 GENEL WRAPPER */
+.rdrCalendarWrapper {
+  width: 100% !important;
+}
+
+/* 📱 MOBİL (default) */
+.rdrMonths {
+  display: block !important;
+  width: 100% !important;
+}
+
+.rdrMonth {
+  width: 100% !important;
+}
+
+/* 💻 TABLET + DESKTOP */
+@media (min-width: 768px) {
+  .rdrMonths {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px;
+  }
+}
+
+/* 🖥️ BÜYÜK EKRAN (daha ferah) */
+@media (min-width: 1280px) {
+  .rdrMonths {
+    gap: 20px;
+  }
+}
+
+
+
+

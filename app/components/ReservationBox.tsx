@@ -518,100 +518,112 @@ export default function ReservationBox() {
     return (
         <div className="grid lg:grid-cols-[1fr_1.4fr] gap-6">
 
-            {/* 🔥 SOL → FORM */}
-            <div className="bg-zinc-900 p-4 md:p-6 rounded-2xl space-y-5 w-full">
+            <div className="bg-gradient-to-b from-zinc-900 to-black p-5 md:p-6 rounded-2xl space-y-6 w-full border border-white/5 shadow-2xl">
 
                 <h2 className="text-2xl font-bold text-white">
                     Rezervasyon Yap
                 </h2>
 
-                {/* BİLGİ */}
-                <div className="text-gray-400 text-sm space-y-1">
-                    {nights > 0 && <p>{nights} gece</p>}
+                {/* 🔥 FİYAT BOX */}
+                <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4 space-y-3">
+
+                    {nights > 0 && (
+                        <p className="text-gray-300 text-sm">
+                            {nights} gece konaklama
+                        </p>
+                    )}
 
                     {nights > 0 && (
                         fees.cleaning_threshold > 0 &&
                             nights >= fees.cleaning_threshold ? (
-                            <p className="text-green-400">
+                            <p className="text-green-400 text-sm font-medium">
                                 Temizlik ücretsiz 🎉
                             </p>
                         ) : (
-                            <p>
+                            <p className="text-gray-400 text-sm">
                                 Temizlik: {formatMoney(cleaningFee)}
                             </p>
                         )
                     )}
 
-                    <p>Depozito: {formatMoney(fees.deposit)} (dahil değil)</p>
+                    <p className="text-gray-400 text-sm">
+                        Depozito: {formatMoney(fees.deposit)}
+                    </p>
 
-                    {/* 🔥 YENİ EKLEDİK */}
                     {nights > 0 && (
-                        <p className="text-yellow-400">
+                        <p className="text-yellow-400 text-sm font-medium">
                             Ön ödeme (%{prepaymentPercent}): {formatMoney(prepaymentAmount)}
                         </p>
                     )}
-                </div>
 
-                {/* TOPLAM */}
-                <div className="text-3xl font-bold text-green-400">
-                    {formatMoney(nights > 0 ? totalPrice : 0)}
-                </div>
-
-                {/* 🔥 YENİ (EN ÖNEMLİ GÖRÜNEN YER) */}
-                {nights > 0 && (
-                    <div className="text-lg text-white">
-                        Şimdi ödenecek:{" "}
-                        <span className="text-green-400 font-bold">
-                            {formatMoney(prepaymentAmount)}
-                        </span>
+                    {/* 🔥 TOTAL */}
+                    <div className="pt-3 border-t border-white/10">
+                        <p className="text-xs text-gray-400">Toplam Tutar</p>
+                        <p className="text-3xl font-bold text-green-400 tracking-tight">
+                            {formatMoney(nights > 0 ? totalPrice : 0)}
+                        </p>
                     </div>
-                )}
 
-                <div className="bg-zinc-800 p-4 rounded-xl space-y-3">
+                    {/* 🔥 ÖNE ÇIKAN */}
+                    {nights > 0 && (
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 text-center">
+                            <p className="text-sm text-gray-300">Şimdi ödenecek</p>
+                            <p className="text-xl font-bold text-green-400">
+                                {formatMoney(prepaymentAmount)}
+                            </p>
+                        </div>
+                    )}
+
+                </div>
+
+                {/* 🔥 FORM */}
+                <div className="bg-zinc-800/60 backdrop-blur p-4 rounded-xl space-y-3 border border-white/5">
 
                     <input name="name" placeholder="Ad Soyad"
                         value={form.name} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 focus:ring-1 focus:ring-green-500 text-white outline-none transition" />
 
                     <input name="phone" placeholder="Telefon"
                         value={form.phone} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 focus:ring-1 focus:ring-green-500 text-white outline-none transition" />
 
                     <input name="email" placeholder="E-posta"
                         value={form.email} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 focus:ring-1 focus:ring-green-500 text-white outline-none transition" />
 
                     <input name="identity" placeholder="TC Kimlik / Pasaport"
                         value={form.identity} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 focus:ring-1 focus:ring-green-500 text-white outline-none transition" />
 
                     <input name="country" placeholder="Ülke"
                         value={form.country} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 text-white outline-none transition" />
 
                     <input name="city" placeholder="Şehir"
                         value={form.city} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 text-white outline-none transition" />
 
                     <input name="address" placeholder="Adres"
                         value={form.address} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 text-white outline-none transition" />
 
                     <textarea name="note" placeholder="Not"
                         value={form.note} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 text-white outline-none transition" />
 
                     <textarea name="guests" placeholder="Diğer Misafirler (isimler)"
                         value={form.guests} onChange={handleChange}
-                        className="w-full p-2 rounded bg-zinc-900 text-white" />
+                        className="w-full p-3 rounded-lg bg-zinc-900 border border-white/10 focus:border-green-500 text-white outline-none transition" />
 
+                    {/* 🔥 CTA */}
                     {mounted && (
                         <button
                             disabled={nights === 0}
                             onClick={createReservation}
-                            className={`w-full p-3 rounded-lg font-semibold ${nights === 0
-                                ? "bg-gray-600 cursor-not-allowed"
-                                : "bg-green-600"
+                            className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200
+        ${nights === 0
+                                    ? "bg-gray-600 cursor-not-allowed"
+                                    : "bg-green-600 hover:bg-green-500 hover:scale-[1.02] shadow-lg shadow-green-500/20"
                                 }`}
                         >
                             Talep Gönder
@@ -620,7 +632,6 @@ export default function ReservationBox() {
 
                 </div>
             </div>
-
             {/* 🔥 SAĞ → TAKVİM */}
             <div className="bg-zinc-900 p-6 rounded-2xl space-y-5">
 

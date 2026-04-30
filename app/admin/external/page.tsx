@@ -35,11 +35,28 @@ export default function ExternalPage() {
             .from("external_reservations")
             .select("start_date, end_date, source");
 
-        const all = [...(res || []), ...(ext || [])];
+        // 🔥 NORMALIZE (EN KRİTİK KISIM)
+        const normalizedRes = (res || []).map((r: any) => ({
+            ...r,
+            source: "internal", // 🔥 artık hepsinde source var
+        }));
+
+        const normalizedExt = (ext || []).map((e: any) => ({
+            ...e,
+            status: e.source === "manual" ? "manual" : "ical", // 🔥 ADMIN İLE AYNI
+        }));
+
+        const all = [...normalizedRes, ...normalizedExt];
 
         const map = new Map();
 
         all.forEach((r) => {
+
+            // 🔥 BURAYA EKLE
+            if (!r.status && r.source) {
+                r.status = r.source;
+            }
+
             let current = new Date(r.start_date);
 
             while (current <= new Date(r.end_date)) {
@@ -252,6 +269,29 @@ export default function ExternalPage() {
                     <p className="text-gray-400 text-sm">
                         iCal + Manuel bloklar
                     </p>
+                    <div className="flex gap-3 text-xs flex-wrap">
+
+                        <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 bg-red-500 rounded-sm" />
+                            <span className="text-gray-400">Onaylı</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 bg-yellow-400 rounded-sm" />
+                            <span className="text-gray-400">Bekliyor</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 bg-blue-500 rounded-sm" />
+                            <span className="text-gray-400">Manuel blok</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 bg-purple-500 rounded-sm" />
+                            <span className="text-gray-400">iCal</span>
+                        </div>
+
+                    </div>
                 </div>
 
                 <button
@@ -284,7 +324,6 @@ export default function ExternalPage() {
                         rangeColors={["#22c55e"]}
                         disabledDay={(date: Date) => isBlocked(date)}
 
-                        // 🔥 ASIL OLAY BURASI
                         dayContentRenderer={(date: Date) => {
                             const dateStr = formatDB(date);
                             const meta = getDateMeta(dateStr);
@@ -294,12 +333,14 @@ export default function ExternalPage() {
 
                                 if (r.status === "approved") return "bg-red-500";
                                 if (r.status === "waiting") return "bg-yellow-400";
-                                if (r.source === "manual") return "bg-green-500";
-                                return "bg-purple-500"; // ical
+                                if (r.status === "manual") return "bg-blue-500";
+                                if (r.status === "ical") return "bg-purple-500";
+
+                                return "";
                             };
 
                             return (
-                                <div className="relative w-full h-full flex items-center justify-center text-xs">
+                                <div className="relative w-full h-full flex flex-col items-center justify-center text-xs">
 
                                     {/* SOL → çıkış */}
                                     {meta.left && (
@@ -316,9 +357,25 @@ export default function ExternalPage() {
                                         <div className={`absolute inset-0 ${getColor(meta.middle)} rounded-md`} />
                                     )}
 
+                                    {/* GÜN */}
                                     <span className="relative z-10 font-semibold text-black">
                                         {date.getDate()}
                                     </span>
+
+                                    {/* 🔥 SADECE ORTA GÜNLER */}
+                                    {meta.middle && (
+                                        <div className="relative z-10 text-[10px] text-white">
+
+                                            {meta.middle.status === "waiting" && "Bekliyor"}
+
+                                            {meta.middle.status === "approved" && "Dolu"}
+
+                                            {meta.middle.status === "manual" && "Dolu (Manuel)"}
+
+                                            {meta.middle.status === "ical" && "Dolu (iCal)"}
+
+                                        </div>
+                                    )}
 
                                 </div>
                             );
@@ -383,7 +440,7 @@ export default function ExternalPage() {
 
                             <span
                                 className={`px-3 py-1 text-xs rounded-full font-semibold ${item.source === "manual"
-                                    ? "bg-green-600"
+                                    ? "bg-blue-600"
                                     : "bg-purple-600"
                                     }`}
                             >

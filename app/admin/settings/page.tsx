@@ -107,11 +107,15 @@ export default function SettingsPage() {
 
       {/* CARD */}
       <div className="bg-zinc-800/50 border border-white/10 rounded-2xl p-6 space-y-6">
-        {/* GRID */}
-        <div className="grid md:grid-cols-3 gap-4">
-          {/* TITLE */}
+
+        {/* 🔥 GRID */}
+        <div className="grid md:grid-cols-2 gap-4">
+
+          {/* 🟢 Seo TITLE */}
           <div>
-            <label className="text-sm text-gray-400">SITE TITLE</label>
+            <label className="text-sm text-gray-400">
+              SEO TITLE (Google)
+            </label>
             <input
               className="w-full mt-1 bg-zinc-900 border border-white/10 p-3 rounded-lg"
               value={settings.site_title || ""}
@@ -124,7 +128,24 @@ export default function SettingsPage() {
             />
           </div>
 
-          {/* PREPAYMENT */}
+          {/* 🔵 Hero TITLE */}
+          <div>
+            <label className="text-sm text-gray-400">
+              HERO BAŞLIK (Site Üstü)
+            </label>
+            <input
+              className="w-full mt-1 bg-zinc-900 border border-white/10 p-3 rounded-lg"
+              value={settings.homepage_title || ""}
+              onChange={(e) =>
+                setSettings((prev: any) => ({
+                  ...prev,
+                  homepage_title: e.target.value,
+                }))
+              }
+            />
+          </div>
+
+          {/* 🟡 PREPAYMENT */}
           <div>
             <label className="text-sm text-gray-400">
               ÖN ÖDEME (%)
@@ -132,17 +153,17 @@ export default function SettingsPage() {
             <input
               type="number"
               className="w-full mt-1 bg-zinc-900 border border-white/10 p-3 rounded-lg"
-              value={settings.prepayment_percent || ""}
+              value={settings.prepayment_percent ?? ""}
               onChange={(e) =>
                 setSettings((prev: any) => ({
                   ...prev,
-                  prepayment_percent: e.target.value,
+                  prepayment_percent: e.target.value === "" ? "" : Number(e.target.value),
                 }))
               }
             />
           </div>
 
-          {/* LOGO */}
+          {/* 🟣 LOGO */}
           <div>
             <label className="text-sm text-gray-400">LOGO</label>
 
@@ -163,23 +184,24 @@ export default function SettingsPage() {
               </p>
             )}
 
-            {settings.logo_url && settings.logo_url !== "" && (
+            {settings.logo_url && (
               <img
                 src={settings.logo_url}
                 className="h-12 mt-2 bg-white rounded p-1"
               />
             )}
           </div>
+
         </div>
 
-        {/* DESCRIPTION */}
+        {/* 🟢 SEO DESCRIPTION */}
         <div>
           <label className="text-sm text-gray-400">
-            SITE DESCRIPTION
+            SEO DESCRIPTION (Google)
           </label>
           <textarea
             className="w-full mt-1 bg-zinc-900 border border-white/10 p-3 rounded-lg"
-            rows={4}
+            rows={3}
             value={settings.site_description || ""}
             onChange={(e) =>
               setSettings((prev: any) => ({
@@ -189,6 +211,25 @@ export default function SettingsPage() {
             }
           />
         </div>
+
+        {/* 🔵 HERO DESCRIPTION */}
+        <div>
+          <label className="text-sm text-gray-400">
+            HERO AÇIKLAMA (Site Üstü)
+          </label>
+          <textarea
+            className="w-full mt-1 bg-zinc-900 border border-white/10 p-3 rounded-lg"
+            rows={3}
+            value={settings.homepage_description || ""}
+            onChange={(e) =>
+              setSettings((prev: any) => ({
+                ...prev,
+                homepage_description: e.target.value,
+              }))
+            }
+          />
+        </div>
+
       </div>
 
       {/* SAVE */}

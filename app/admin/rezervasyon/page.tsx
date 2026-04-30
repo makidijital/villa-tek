@@ -9,6 +9,7 @@ import { tr } from "date-fns/locale";
 
 export default function AdminReservationPage() {
     const [reservations, setReservations] = useState<any[]>([]);
+    const [calendarReservations, setCalendarReservations] = useState<any[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -42,7 +43,7 @@ export default function AdminReservationPage() {
 
     // ✅ TAKVİM STATUS
     const getDateStatus = (dateStr: string) => {
-        for (let r of reservations) {
+        for (let r of calendarReservations) {
             if (dateStr >= r.start_date && dateStr <= r.end_date) {
 
                 if (r.id === editingId) return "free";
@@ -68,7 +69,7 @@ export default function AdminReservationPage() {
         let right: any = null;
         let middle: any = null;
 
-        for (let r of reservations) {
+       for (let r of calendarReservations) {
             if (r.id === editingId) continue;
 
             if (dateStr >= r.start_date && dateStr <= r.end_date) {
@@ -87,34 +88,53 @@ export default function AdminReservationPage() {
 
         if (r.status === "approved") return "bg-red-500";
         if (r.status === "waiting") return "bg-yellow-400";
+        if (r.status === "manual") return "bg-blue-500";
+        if (r.status === "ical") return "bg-purple-500";
 
         return "";
     };
 
     // ✅ DATA ÇEK
     const getReservations = async () => {
-        const { data } = await supabase
+
+        const { data: res } = await supabase
             .from("reservations")
-            .select("*")
-            .order("created_at", { ascending: false });
+            .select("*");
 
-        setReservations(data || []);
+        const { data: ext } = await supabase
+            .from("external_reservations")
+            .select("*");
+
+        // 🔥 external normalize
+        const externalNormalized = (ext || []).map((e: any) => ({
+            ...e,
+            status: e.source === "manual" ? "manual" : "ical",
+            id: `ext-${e.id}`,
+        }));
+
+        // ✅ LİSTE (SADECE GERÇEK)
+        setReservations(res || []);
+
+        // ✅ TAKVİM (HER ŞEY)
+        setCalendarReservations([
+            ...(res || []),
+            ...externalNormalized,
+        ]);
     };
-
     const isDayDisabled = (date: Date) => {
-    const dateStr = formatDateLocal(date);
+        const dateStr = formatDateLocal(date);
 
-    const { left, right, middle } = getDayParts(dateStr);
+        const { left, right, middle } = getDayParts(dateStr);
 
-    // ❌ FULL dolu günler
-    if (middle) return true;
+        // ❌ FULL dolu günler
+        if (middle) return true;
 
-    // ❌ iki rezervasyon birleşmiş (yarım yarım)
-    if (left && right) return true;
+        // ❌ iki rezervasyon birleşmiş (yarım yarım)
+        if (left && right) return true;
 
-    // ✅ sadece tek taraf doluysa (giriş/çıkış) izin ver
-    return false;
-};
+        // ✅ sadece tek taraf doluysa (giriş/çıkış) izin ver
+        return false;
+    };
 
     // 🔥 FİYAT ÇEK
     const getPrices = async () => {
@@ -350,17 +370,44 @@ export default function AdminReservationPage() {
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-white">Rezervasyonlar</h1>
 
+            <div className="flex gap-3 text-xs flex-wrap">
+
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-red-500 rounded-sm" />
+                    <span className="text-gray-400">Onaylı</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-yellow-400 rounded-sm" />
+                    <span className="text-gray-400">Bekliyor</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-blue-500 rounded-sm" />
+                    <span className="text-gray-400">Manuel blok</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-purple-500 rounded-sm" />
+                    <span className="text-gray-400">iCal</span>
+                </div>
+
+            </div>
+
             {reservations.map((r) => {
+
+                // 🔥 external kontrol (YENİ EKLENDİ)
+                const isExternal = r.status === "manual" || r.status === "ical";
 
                 // 🔥 CANLI FİYAT HESAP
                 let previewTotal = r.total_price;
                 let previewCleaning = r.cleaning_fee;
 
-                // 🔥 HER ZAMAN YENİDEN HESAPLA
                 const percent = r.prepayment_override ?? prepaymentPercent ?? 0;
                 let previewPrepayment = Math.round((previewTotal * percent) / 100);
 
-                if (editingId === r.id) {
+                // 🔥 EDIT MODU HESAPLAMA
+                if (editingId === r.id && !isExternal) {
                     const start = editRange[0]?.startDate;
                     const end = editRange[0]?.endDate;
 
@@ -409,7 +456,7 @@ export default function AdminReservationPage() {
 
                         if (manualPrice && manualPrice > 0) {
                             previewTotal = manualPrice;
-                            previewCleaning = 0; // 🔥 TEMİZLİK SIFIR
+                            previewCleaning = 0;
                         } else {
                             previewTotal = total;
                             previewCleaning = cleaning;
@@ -422,8 +469,8 @@ export default function AdminReservationPage() {
                 const isPaid = Boolean(r.prepayment_paid);
                 const isApproved = status === "approved";
 
-                const canApprove = isPaid && !isApproved;
-                const canReject = !isPaid && !isApproved;
+                const canApprove = isPaid && !isApproved && !isExternal;
+                const canReject = !isPaid && !isApproved && !isExternal;
 
                 return (
                     <div
@@ -591,7 +638,15 @@ export default function AdminReservationPage() {
                                                     {/* LABEL */}
                                                     {middle && (
                                                         <div className="relative z-10 text-[10px] text-white">
-                                                            {middle.status === "waiting" ? "Bekliyor" : "Dolu"}
+
+                                                            {middle.status === "waiting" && "Bekliyor"}
+
+                                                            {middle.status === "approved" && "Dolu"}
+
+                                                            {middle.status === "manual" && "Dolu (Manuel)"}
+
+                                                            {middle.status === "ical" && "Dolu (iCal)"}
+
                                                         </div>
                                                     )}
                                                 </div>
@@ -754,22 +809,24 @@ export default function AdminReservationPage() {
                             </button>
 
                             {/* ✔ ONAYLA */}
-                            <button
-                                disabled={!canApprove || loadingId === r.id}
-                                onClick={() => approve(r)}
-                                className={`flex-1 py-4 font-semibold text-white transition flex items-center justify-center gap-2
-      ${!Boolean(r.prepayment_paid)
-                                        ? "bg-gray-600 cursor-not-allowed"
-                                        : "bg-green-600 hover:bg-green-500"}
-      ${loadingId === r.id && "opacity-50"}`}
-                            >
-                                <CheckCircle size={18} />
-                                Onayla
-                            </button>
+                            {/* ✔ ONAYLA */}
+                            {!isExternal && (
+                                <button
+                                    disabled={!canApprove || loadingId === r.id}
+                                    onClick={() => approve(r)}
+                                    className={`flex-1 py-4 font-semibold text-white transition flex items-center justify-center gap-2
+        ${!Boolean(r.prepayment_paid)
+                                            ? "bg-gray-600 cursor-not-allowed"
+                                            : "bg-green-600 hover:bg-green-500"}
+        ${loadingId === r.id && "opacity-50"}`}
+                                >
+                                    <CheckCircle size={18} />
+                                    Onayla
+                                </button>
+                            )}
 
                             {/* ✖ REDDET */}
-                            {/* ✖ REDDET */}
-                            {canReject && (
+                            {canReject && !isExternal && (
                                 <button
                                     disabled={loadingId === r.id || !canReject}
                                     onClick={() => reject(r.id)}
@@ -784,8 +841,11 @@ export default function AdminReservationPage() {
 
                             {/* 🗑 SİL */}
                             <button
-                                disabled={loadingId === r.id}
-                                onClick={() => deleteReservation(r.id)}
+                                disabled={loadingId === r.id || isExternal}
+                                onClick={() => {
+                                    if (isExternal) return;
+                                    deleteReservation(r.id);
+                                }}
                                 className="flex-1 bg-red-700 hover:bg-red-600 py-4 text-white font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 <Trash2 size={18} />

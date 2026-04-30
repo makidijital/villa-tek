@@ -14,7 +14,6 @@ import {
   Waves,
 } from "lucide-react";
 
-// 🔥 icon map
 const ICONS: any = {
   market: Store,
   restaurant: Utensils,
@@ -33,7 +32,6 @@ export default function Details() {
 
   useEffect(() => {
     const getData = async () => {
-      // 1️⃣ VILLA ID çek
       const { data: villaData } = await supabase
         .from("villa")
         .select("id")
@@ -46,14 +44,12 @@ export default function Details() {
 
       const villaId = villaData[0].id;
 
-      // 2️⃣ DETAILS çek
       const { data: detailsData } = await supabase
         .from("villa_details")
         .select("*")
         .eq("villa_id", villaId)
         .single();
 
-      // 3️⃣ DISTANCES çek
       const { data: distanceData } = await supabase
         .from("villa_distances")
         .select("*")
@@ -68,34 +64,38 @@ export default function Details() {
   }, []);
 
   if (loading) {
-    return <p className="text-white text-center py-20">Yükleniyor...</p>;
+    return (
+      <div className="py-24 text-center text-gray-400 animate-pulse">
+        Yükleniyor...
+      </div>
+    );
   }
 
   return (
-    <section className="bg-black text-white py-16 px-4">
+    <section className="bg-black text-white py-20 px-4">
+      <div className="max-w-7xl mx-auto space-y-16">
 
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* ÜST GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {/* 🔥 HEADER */}
 
-          {/* SOL - AÇIKLAMA (DAR) */}
-          <div className="md:col-span-1 max-w-xl">
-            <h2 className="text-3xl font-bold mb-4">
-              Villa Hakkında
-            </h2>
+        {/* 🔥 GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-            <p className="text-gray-300 leading-relaxed text-lg">
-              {details?.description || "Açıklama bulunamadı"}
-            </p>
+          {/* SOL - AÇIKLAMA */}
+          <div className="lg:col-span-1">
+            <div className="bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 rounded-2xl border border-white/5 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-4">
+                Villa Hakkında
+              </h3>
+
+              <p className="text-gray-300 leading-relaxed">
+                {details?.description || "Açıklama bulunamadı"}
+              </p>
+            </div>
           </div>
 
-          {/* SAĞ - MESAFELER (GENİŞ) */}
-          <div className="md:col-span-2">
-            <h3 className="text-2xl font-semibold mb-6">
-              Mesafeler
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* SAĞ - MESAFELER */}
+          <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {distances.length > 0 ? (
                 distances.map((item, i) => {
                   const Icon = ICONS[item.icon] || MapPin;
@@ -103,28 +103,33 @@ export default function Details() {
                   return (
                     <div
                       key={i}
-                      className="flex items-center gap-4 bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition h-full"
+                      className="group flex items-center gap-4 bg-zinc-900/70 backdrop-blur p-5 rounded-xl border border-white/5 hover:border-red-500/40 hover:bg-zinc-800 transition-all duration-300"
                     >
                       {/* ICON */}
-                      <div className="bg-green-600/20 p-2 rounded-lg">
-                        <Icon className="w-5 h-5 text-green-400" />
+                      <div className="bg-red-600/20 group-hover:bg-red-500/30 transition p-3 rounded-xl">
+                        <Icon className="w-5 h-5 text-red-400" />
                       </div>
 
-                      {/* TITLE */}
-                      <span className="text-white font-medium">
-                        {item.title}
-                      </span>
+                      {/* TEXT */}
+                      <div>
+                        <p className="text-white font-medium">
+                          {item.title}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          Mesafe
+                        </p>
+                      </div>
 
                       {/* VALUE */}
-                      <span className="ml-auto text-gray-300 font-semibold">
+                      <div className="ml-auto text-red-400 font-semibold">
                         {item.value}
-                      </span>
+                      </div>
                     </div>
                   );
                 })
               ) : (
                 <p className="text-gray-500 col-span-2 text-center">
-                  Mesafe yok
+                  Mesafe bilgisi bulunamadı
                 </p>
               )}
             </div>
@@ -132,23 +137,22 @@ export default function Details() {
 
         </div>
 
-        {/* ALT - HARİTA */}
+        {/* 🔥 MAP */}
         <div>
-          <h3 className="text-2xl font-semibold mb-6">
+          <h3 className="text-2xl font-semibold mb-6 text-center">
             Konum
           </h3>
 
-          <div className="rounded-xl overflow-hidden">
+          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
             <iframe
               src={
                 details?.location ||
                 "https://www.google.com/maps?q=Kaş,Kalkan&output=embed"
               }
-              className="w-full h-[400px]"
+              className="w-full h-[350px] md:h-[450px]"
               loading="lazy"
             />
           </div>
-
         </div>
 
       </div>

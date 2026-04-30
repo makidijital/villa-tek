@@ -93,150 +93,149 @@ export default function Price() {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-20 text-white">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-white">
 
-      {/* HEADER */}
-      <div className="mb-10 flex justify-between items-center">
+  {/* HEADER */}
+  <div className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 
-        <div>
-          <h2 className="text-3xl font-bold mb-2">Fiyatlar</h2>
-          <p className="text-gray-400">
-            Sezonlara göre gecelik fiyatlar
+    <div>
+      <h2 className="text-3xl font-bold mb-2">Fiyatlar</h2>
+      <p className="text-gray-400">
+        Sezonlara göre gecelik fiyatlar
+      </p>
+    </div>
+
+    {/* 🔥 CURRENCY */}
+    <div className="relative">
+      <select
+        value={currency}
+        onChange={(e) => {
+          const value = e.target.value;
+          setCurrency(value);
+          localStorage.setItem("currency", value);
+          window.dispatchEvent(new Event("currencyChange"));
+        }}
+        className="appearance-none bg-zinc-900/80 backdrop-blur border border-zinc-700 px-4 py-2 pr-10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+      >
+        <option value="TRY">₺ TRY</option>
+        <option value="EUR">€ EUR</option>
+        <option value="USD">$ USD</option>
+        <option value="GBP">£ GBP</option>
+      </select>
+
+      {/* ok icon */}
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+        ▼
+      </span>
+    </div>
+
+  </div>
+
+  {/* 🔥 PRICE CARDS */}
+  <div className="grid gap-4">
+
+    {periods.map((item, i) => (
+      <div
+        key={i}
+        className="group flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-zinc-900/70 backdrop-blur p-5 rounded-2xl border border-white/5 hover:border-red-500/40 hover:bg-zinc-800 transition-all duration-300"
+      >
+
+        {/* LEFT */}
+        <div className="flex items-center gap-4">
+
+          <div className="bg-zinc-800 group-hover:bg-red-500/20 transition p-3 rounded-xl">
+            <CalendarDays className="w-5 h-5 text-gray-300 group-hover:text-red-400" />
+          </div>
+
+          <div>
+            <p className="font-semibold text-white">
+              {formatDate(item.start_date)} – {formatDate(item.end_date)}
+            </p>
+
+            <p className="text-sm text-gray-400">
+              Minimum konaklama uygulanabilir
+            </p>
+          </div>
+
+        </div>
+
+        {/* RIGHT */}
+        <div className="text-left sm:text-right">
+          <p className="text-2xl sm:text-3xl font-bold text-red-400">
+            {formatMoney(Number(item.price))}
+          </p>
+          <p className="text-xs text-gray-400">
+            gecelik fiyat
           </p>
         </div>
 
-        {/* 🔥 CURRENCY SELECT */}
-        <select
-          value={currency}
-          onChange={(e) => {
-            const value = e.target.value;
-
-            setCurrency(value);
-            localStorage.setItem("currency", value);
-
-            // 🔥 EKLE (EN KRİTİK)
-            window.dispatchEvent(new Event("currencyChange"));
-          }}
-          className="bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-xl text-white"
-        >
-          <option value="TRY">₺ TRY</option>
-          <option value="EUR">€ EUR</option>
-          <option value="USD">$ USD</option>
-          <option value="GBP">£ GBP</option>
-        </select>
-
       </div>
+    ))}
 
-      {/* LİSTE */}
-      <div className="space-y-4">
+  </div>
 
-        {periods.map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between bg-zinc-900 hover:bg-zinc-800 transition p-5 rounded-2xl border border-zinc-800"
-          >
+  {/* 🔥 EXTRA FEES */}
+  <div className="mt-14">
 
-            {/* SOL */}
-            <div className="flex items-center gap-4">
+    <h3 className="text-xl font-semibold mb-6 text-gray-300">
+      Ek Ücretler
+    </h3>
 
-              <div className="bg-zinc-800 p-3 rounded-xl">
-                <CalendarDays className="w-5 h-5 text-gray-300" />
-              </div>
+    <div className="grid sm:grid-cols-2 gap-4">
 
-              <div>
-                <p className="font-semibold">
-                  {formatDate(item.start_date)} – {formatDate(item.end_date)}
-                </p>
+      {/* DEPOSIT */}
+      <div className="group bg-orange-500/10 border border-orange-500/20 hover:border-orange-400/40 p-5 rounded-2xl transition">
 
-                <p className="text-sm text-gray-400">
-                  Konaklama
-                </p>
-
-                <p className="text-xs text-gray-500">
-                  Günlük · Gecelik
-                </p>
-              </div>
-
-            </div>
-
-            {/* SAĞ */}
-            <div className="text-right">
-              <p className="text-2xl font-bold text-white">
-                {formatMoney(Number(item.price))}
-              </p>
-              <p className="text-sm text-gray-400">
-                gecelik
-              </p>
-            </div>
-
-          </div>
-        ))}
-
-      </div>
-
-      {/* DİĞER FİYATLAR */}
-      <div className="mt-12">
-
-        <h3 className="text-xl font-semibold mb-4 text-gray-300">
-          Diğer Fiyatlar
-        </h3>
-
-        {/* DEPOZİTO */}
-        <div className="bg-orange-500/10 border border-orange-500/30 p-5 rounded-2xl flex justify-between items-center">
-
-          <div className="flex items-center gap-4">
-            <div className="bg-orange-500/20 p-3 rounded-xl">
-              <CalendarDays className="w-5 h-5 text-orange-400" />
-            </div>
-
-            <div>
-              <p className="font-semibold">Hasar Depozitosu</p>
-              <p className="text-sm text-gray-400">
-                Tek seferlik ücret
-              </p>
-            </div>
+        <div className="flex items-center gap-4 mb-3">
+          <div className="bg-orange-500/20 p-3 rounded-xl">
+            <CalendarDays className="w-5 h-5 text-orange-400" />
           </div>
 
-          <div className="text-right">
-            <p className="text-xl font-bold text-orange-400">
-              {formatMoney(fees.deposit)}
-            </p>
-            <p className="text-sm text-gray-400">
-              tek seferlik
+          <div>
+            <p className="font-semibold">Hasar Depozitosu</p>
+            <p className="text-xs text-gray-400">
+              Çıkışta iade edilir
             </p>
           </div>
-
         </div>
 
-        {/* TEMİZLİK */}
-        <div className="mt-4 bg-blue-500/10 border border-blue-500/30 p-5 rounded-2xl flex justify-between items-center">
-
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-500/20 p-3 rounded-xl">
-              <CalendarDays className="w-5 h-5 text-blue-400" />
-            </div>
-
-            <div>
-              <p className="font-semibold">Temizlik Ücreti</p>
-              <p className="text-sm text-gray-400">
-                Tek seferlik ücret
-              </p>
-            </div>
-          </div>
-
-          <div className="text-right">
-            <p className="text-xl font-bold text-blue-400">
-              {formatMoney(fees.cleaning_fee)}
-            </p>
-            <p className="text-sm text-gray-400">
-              tek seferlik
-            </p>
-          </div>
-
-        </div>
+        <p className="text-2xl font-bold text-orange-400">
+          {formatMoney(fees.deposit)}
+        </p>
 
       </div>
 
-    </section>
+      {/* CLEANING */}
+      <div className="group bg-blue-500/10 border border-blue-500/20 hover:border-blue-400/40 p-5 rounded-2xl transition">
+
+        <div className="flex items-center gap-4 mb-3">
+          <div className="bg-blue-500/20 p-3 rounded-xl">
+            <CalendarDays className="w-5 h-5 text-blue-400" />
+          </div>
+
+          <div>
+            <p className="font-semibold">Temizlik Ücreti</p>
+            <p className="text-xs text-gray-400">
+              Tek seferlik ödeme
+            </p>
+          </div>
+        </div>
+
+        <p className="text-2xl font-bold text-blue-400">
+          {formatMoney(fees.cleaning_fee)}
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* 🔥 UX BOOST */}
+  <div className="mt-10 text-center text-sm text-gray-500">
+    Tüm fiyatlar sezona göre değişiklik gösterebilir
+  </div>
+
+</section>
   );
 }

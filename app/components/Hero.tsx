@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import Gallery from "./Gallery";
 
 export default function Hero() {
-  const [data, setData] = useState<any>(null);
+  const [villa, setVilla] = useState<any>(null);
+  const [settings, setSettings] = useState<any>({});
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [coverImage, setCoverImage] = useState<string | null>(null);
 
@@ -15,139 +16,149 @@ export default function Hero() {
     return match ? match[1] : null;
   };
 
-  // 🔥 VILLA DATA
   useEffect(() => {
     const getData = async () => {
-      const { data } = await supabase
+      const { data: villaData } = await supabase
         .from("villa")
         .select("*")
         .limit(1);
 
-      if (data && data.length > 0) {
-        setData(data[0]);
-      }
+      if (villaData?.length) setVilla(villaData[0]);
+
+      const { data: settingsData } = await supabase
+        .from("settings")
+        .select("*");
+
+      const obj: any = {};
+      settingsData?.forEach((item) => {
+        obj[item.key] = item.value;
+      });
+
+      setSettings(obj);
     };
 
     getData();
   }, []);
 
-  // 🔥 COVER IMAGE (ilk görsel)
   useEffect(() => {
     const getCover = async () => {
-      if (!data?.id) return;
+      if (!villa?.id) return;
 
-      const { data: coverData } = await supabase
+      const { data } = await supabase
         .from("villa_images")
         .select("image_url")
-        .eq("villa_id", data.id)
+        .eq("villa_id", villa.id)
         .order("order_no", { ascending: true })
         .limit(1);
 
-      if (coverData && coverData.length > 0) {
-        setCoverImage(coverData[0].image_url);
-      }
+      if (data?.length) setCoverImage(data[0].image_url);
     };
 
     getCover();
-  }, [data?.id]);
+  }, [villa?.id]);
 
-  if (!data) return null;
+  if (!villa) return null;
 
-  const youtubeId = getYoutubeId(data.video_url) || "";
+  const youtubeId = getYoutubeId(villa.video_url) || "";
+
+  const title = settings.homepage_title || villa.title;
+  const subtitle = settings.homepage_description || villa.subtitle;
 
   return (
-    <section className="relative h-screen w-full">
+    <section className="relative min-h-screen w-full">
 
-      {/* 🎬 MEDIA (VIDEO / IMAGE) */}
-      {data.video_url &&
-      (data.video_url.includes("youtube") ||
-        data.video_url.includes("youtu.be")) ? (
-
+      {/* 🎬 MEDIA */}
+      {villa.video_url &&
+      (villa.video_url.includes("youtube") ||
+        villa.video_url.includes("youtu.be")) ? (
         <iframe
-          className="absolute w-full h-full object-cover pointer-events-none"
-          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&modestbranding=1`}
+          className="absolute w-full h-full object-cover pointer-events-none scale-110"
+          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0`}
           title="YouTube video"
           allow="autoplay; fullscreen"
         />
-
-      ) : data.video_url ? (
-
+      ) : villa.video_url ? (
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute w-full h-full object-cover"
+          className="absolute w-full h-full object-cover scale-110"
         >
-          <source src={data.video_url} type="video/mp4" />
+          <source src={villa.video_url} type="video/mp4" />
         </video>
-
       ) : coverImage ? (
-
         <img
           src={coverImage}
           className="absolute w-full h-full object-cover"
           alt="villa görsel"
         />
-
       ) : (
-
-        <div className="absolute w-full h-full bg-zinc-900"></div>
-
+        <div className="absolute w-full h-full bg-zinc-900" />
       )}
 
       {/* OVERLAY */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/90" />
 
-      {/* CONTENT */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 text-white">
+      {/* 🔥 CONTENT */}
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
 
-        {/* TITLE */}
-        <h1 className="text-5xl md:text-7xl font-bold mb-6">
-          {data.title}
-        </h1>
+        <div className="w-full max-w-2xl text-center backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-10 shadow-2xl">
 
-        {/* SUBTITLE */}
-        <p className="text-lg md:text-xl mb-8 text-gray-300">
-          {data.subtitle}
-        </p>
+          {/* TITLE */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight">
+            {title}
+          </h1>
 
-        {/* FEATURES */}
-        <div className="flex gap-10 mb-8">
+          {/* SUBTITLE */}
+          <p className="text-sm sm:text-base md:text-lg text-gray-300 mb-6">
+            {subtitle}
+          </p>
 
-          <div className="text-center">
-            <p className="text-3xl font-bold">{data.guest}</p>
-            <p className="text-sm text-gray-300">Kişi</p>
+          {/* FEATURES */}
+          <div className="flex justify-center gap-6 sm:gap-10 mb-6 text-center">
+
+            <div>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">
+                {villa.guest}
+              </p>
+              <p className="text-xs text-gray-400 ">Kişi</p>
+            </div>
+
+            <div>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">
+                {villa.bedroom}
+              </p>
+              <p className="text-xs text-gray-400">Oda</p>
+            </div>
+
+            <div>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">
+                {villa.bathroom}
+              </p>
+              <p className="text-xs text-gray-400">Banyo</p>
+            </div>
+
           </div>
 
-          <div className="text-center">
-            <p className="text-3xl font-bold">{data.bedroom}</p>
-            <p className="text-sm text-gray-300">Yatak Odası</p>
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row gap-3">
+
+            <a
+              href="#reservation"
+              className="flex-1 text-center bg-red-600 hover:bg-red-500 transition py-3 rounded-xl text-base font-semibold shadow-lg hover:scale-[1.02]"
+            >
+              Rezervasyon Yap
+            </a>
+
+            <button
+              onClick={() => setGalleryOpen(true)}
+              className="flex-1 text-center border border-white/20 hover:bg-white/10 transition py-3 rounded-xl text-base font-medium"
+            >
+              Tüm Resimleri Gör
+            </button>
+
           </div>
-
-          <div className="text-center">
-            <p className="text-3xl font-bold">{data.bathroom}</p>
-            <p className="text-sm text-gray-300">Banyo</p>
-          </div>
-
-        </div>
-
-        {/* BUTTONS */}
-        <div className="flex gap-4 flex-wrap justify-center">
-
-          <a
-            href="#reservation"
-            className="bg-green-600 hover:bg-green-500 transition px-8 py-3 rounded text-lg"
-          >
-            Rezervasyon Yap
-          </a>
-
-          <button
-            onClick={() => setGalleryOpen(true)}
-            className="border border-white/40 hover:bg-white/10 transition px-8 py-3 rounded text-lg"
-          >
-            Tüm Resimleri Göster
-          </button>
 
         </div>
 
@@ -157,6 +168,11 @@ export default function Hero() {
       {galleryOpen && (
         <Gallery onClose={() => setGalleryOpen(false)} />
       )}
+
+      {/* 🔥 SCROLL INDICATOR */}
+      <div className="absolute bottom-6 w-full flex justify-center text-white/60 text-xs animate-bounce">
+        ↓ Aşağı kaydır
+      </div>
 
     </section>
   );

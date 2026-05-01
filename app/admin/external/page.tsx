@@ -158,6 +158,11 @@ export default function ExternalPage() {
             return;
         }
 
+        const formatDB = (d: Date) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+                d.getDate()
+            ).padStart(2, "0")}`;
+
         const start_date = formatDB(start);
         const end_date = formatDB(end);
 
@@ -165,6 +170,9 @@ export default function ExternalPage() {
             alert("Hatalı tarih ❌");
             return;
         }
+
+        // 🔥 HASH OLUŞTUR (EN KRİTİK)
+        const hash = `${start_date}_${end_date}`;
 
         // 🔥 TÜM BLOKLARI ÇEK
         const { data: external } = await supabase
@@ -191,8 +199,7 @@ export default function ExternalPage() {
             return;
         }
 
-        // 🔥 INSERT
-        // 🔥 önce villa id al
+        // 🔥 villa id al
         const { data: villa } = await supabase
             .from("villa")
             .select("id")
@@ -210,11 +217,12 @@ export default function ExternalPage() {
             .from("external_reservations")
             .insert([
                 {
-                    villa_id: villaId, // ✅ EN KRİTİK SATIR
+                    villa_id: villaId,
                     start_date,
                     end_date,
                     source: "manual",
                     note: form.note,
+                    hash: hash, // 🔥 BURASI ÖNEMLİ
                 },
             ]);
 
@@ -228,7 +236,7 @@ export default function ExternalPage() {
         setForm({ note: "" });
 
         await getData();
-        await getAllData(); // 🔥 EKLE
+        await getAllData();
     };
 
     // 🔥 SİL

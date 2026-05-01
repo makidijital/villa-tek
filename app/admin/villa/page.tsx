@@ -39,6 +39,8 @@ export default function VillaAdmin() {
   // 🔹 DETAYLAR
   const [details, setDetails] = useState<any>(null);
 
+  const [icalUrl, setIcalUrl] = useState("");
+
   // 🔹 MESAFELER
   const [distances, setDistances] = useState<any[]>([]);
 
@@ -66,7 +68,6 @@ export default function VillaAdmin() {
   };
 
   // 🔥 DATA ÇEK
-  // 🔥 DATA ÇEK
   useEffect(() => {
     const getData = async () => {
 
@@ -85,6 +86,8 @@ export default function VillaAdmin() {
           bedroom: String(villa.bedroom || ""),
           bathroom: String(villa.bathroom || ""),
         });
+
+        setIcalUrl(villa.ical_url || "");
 
         // 2️⃣ DETAILS
         const { data: detailsData } = await supabase
@@ -179,6 +182,7 @@ export default function VillaAdmin() {
         .from("villa")
         .update({
           ...data,
+          ical_url: icalUrl,
           guest: Number(data.guest || 0),
           bedroom: Number(data.bedroom || 0),
           bathroom: Number(data.bathroom || 0),
@@ -374,7 +378,7 @@ export default function VillaAdmin() {
 
             <input
               className="w-full p-3 rounded-xl bg-zinc-800 text-white border border-transparent 
-      focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition"
+         focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition"
               value={data.subtitle || ""}
               onChange={(e) =>
                 setData({ ...data, subtitle: e.target.value })
@@ -392,7 +396,7 @@ export default function VillaAdmin() {
             <textarea
               rows={5}
               className="w-full p-4 rounded-xl bg-zinc-800 text-white border border-transparent 
-      focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition resize-none"
+         focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition resize-none"
               value={details?.description || ""}
               onChange={(e) =>
                 setDetails({ ...details, description: e.target.value })
@@ -406,6 +410,24 @@ export default function VillaAdmin() {
             </p>
           </div>
 
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs text-gray-400 uppercase tracking-wide">
+            iCal Link (Airbnb / Booking)
+          </label>
+
+          <input
+            className="w-full p-3 rounded-xl bg-zinc-800 text-white border border-transparent 
+    focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition"
+            value={icalUrl}
+            onChange={(e) => setIcalUrl(e.target.value)}
+            placeholder="https://..."
+          />
+
+          <p className="text-xs text-gray-500">
+            Airbnb veya Booking iCal linkini buraya yapıştır
+          </p>
         </div>
 
         <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 md:p-8 space-y-6 overflow-hidden shadow-lg hover:shadow-green-500/10 hover:border-green-500/30 transition-all">

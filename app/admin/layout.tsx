@@ -13,13 +13,12 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  // 🔥 login sayfası kontrolü (STATE YOK)
   const isLoginPage = pathname.startsWith("/admin/login");
 
   const [settings, setSettings] = useState<any>({});
-  const [loading, setLoading] = useState(!isLoginPage); // login'de false başla
+  const [loading, setLoading] = useState(!isLoginPage);
 
-  // 🔥 AUTH + ADMIN CHECK
+  // 🔐 AUTH + ADMIN CHECK
   useEffect(() => {
     if (isLoginPage) return;
 
@@ -36,7 +35,7 @@ export default function AdminLayout({
         .from("admins")
         .select("email")
         .eq("email", user.email)
-        .single();
+        .maybeSingle(); // 🔥 single yerine bu
 
       if (!admin) {
         router.replace("/");
@@ -47,9 +46,18 @@ export default function AdminLayout({
     };
 
     checkUser();
+
+    // 🔥 auth değişirse tekrar kontrol et
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      checkUser();
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, [isLoginPage, router]);
 
-  // 🔥 SETTINGS
+  // ⚙️ SETTINGS
   useEffect(() => {
     if (isLoginPage) return;
 
@@ -67,13 +75,56 @@ export default function AdminLayout({
     getSettings();
   }, [isLoginPage]);
 
-  // 🔥 LOGIN PAGE → sidebar yok
+  // ⏳ INACTIVITY TIMEOUT
+  useEffect(() => {
+    if (isLoginPage) return;
+
+    let timeout: NodeJS.Timeout;
+
+    const logout = async () => {
+      await supabase.auth.signOut();
+      router.replace("/admin/login");
+    };
+
+    const resetTimer = () => {
+      clearTimeout(timeout);
+
+      timeout = setTimeout(() => {
+        logout();
+      }, 1000 * 60 * 30);
+    };
+
+    const events = ["mousemove", "keydown", "click", "scroll"];
+
+    events.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeout);
+      events.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [isLoginPage, router]);
+
+  // 🔥 LOGIN PAGE
   if (isLoginPage) {
     return <>{children}</>;
   }
 
-  // 🔥 loading
-  if (loading) return null;
+  // 🔥 LOADING UI (boş ekran yerine)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="animate-pulse text-sm text-gray-400">
+          Yükleniyor...
+        </div>
+      </div>
+    );
+  }
 
   const menu = [
     { name: "Dashboard", href: "/admin" },
@@ -83,11 +134,11 @@ export default function AdminLayout({
     { name: "Yorumlar", href: "/admin/reviews" },
     { name: "İletişim", href: "/admin/contact" },
     { name: "Genel Ayarlar", href: "/admin/settings" },
+    { name: "Kullanıcılar", href: "/admin/admins" }, // 🔥 EKLEDİK
   ];
 
   return (
     <div className="flex min-h-screen bg-black text-white">
-
       {/* SIDEBAR */}
       <aside className="w-64 bg-black border-r border-white/10 p-6 flex flex-col justify-between">
         <div>
@@ -113,9 +164,7 @@ export default function AdminLayout({
                   key={item.href}
                   href={item.href}
                   className={`p-3 rounded-lg transition font-medium ${
-                    isActive
-                      ? "bg-green-600"
-                      : "hover:bg-white/10"
+                    isActive ? "bg-green-600" : "hover:bg-white/10"
                   }`}
                 >
                   {item.name}
@@ -146,7 +195,6 @@ export default function AdminLayout({
       <main className="flex-1 bg-zinc-900 p-6 md:p-10 overflow-auto">
         {children}
       </main>
-
     </div>
   );
 }
